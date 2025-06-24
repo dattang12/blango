@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django import template
 from django.utils.html import format_html
+from django.utils import timezone
+from blog.models import Post
 
 register = template.Library()
 
@@ -23,3 +25,32 @@ def author_details(author, current_user):
     preffix = ""
     suffix = ""
   return format_html('{}{}{}', preffix, name, suffix)
+
+@register.simple_tag
+def row(extra_class=""):
+  if extra_class:
+    return format_html('<div class="row {}">', extra_class)
+  return format_html('<div class="row">')
+
+@register.simple_tag
+def endrow():
+  return format_html('</div>')
+
+@register.simple_tag
+def col(extra_class=""):
+  if extra_class:
+    return format_html('<div class="col {}">', extra_class)
+  return format_html('<div class="col">')
+
+@register.simple_tag
+def endcol():
+  return format_html('</div>')
+
+
+@register.inclusion_tag("blog/post-list.html")
+def recent_posts(post):
+  posts = Post.objects.filter(published_at__lte=timezone.now()).exclude(id=post.id)[:5]
+  return {
+    'title' : 'Recent Posts',
+    'posts' : posts,
+  }
